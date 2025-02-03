@@ -1,4 +1,4 @@
-# Minecraft Server Opener
+# Minecraft Server Opener For Linux
 
 Minecraft Server Opener is a simple bash script designed to automate the setup and management of Minecraft servers. The script checks for necessary dependencies, installs Java versions if required, and provides an interactive menu to manage different types of Minecraft servers, such as Vanilla, Forge, Paper, Fabric, and Sponge.
 

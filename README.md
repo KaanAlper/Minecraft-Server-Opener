@@ -32,3 +32,7 @@ Minecraft Server Opener is a simple bash script designed to automate the setup a
 
    ```bash
    ./server.sh
+4. Add to bin (Optional):
+
+   ```bash
+   sudo cp server.sh /usr/local/bin/server.sh

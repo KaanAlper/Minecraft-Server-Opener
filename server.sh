@@ -26,23 +26,19 @@ check_dependencies
 
 current_dir="$(pwd)"
 
-# Türkçe karakter kontrolü (ü, Ü, İ, ı, ö, Ö, ğ, Ğ, ç, Ç, ş, Ş)
 if [[ "$current_dir" =~ [üÜİıöÖğĞçÇşŞ] ]]; then
     echo "❌ Hata: Betik '$current_dir' dizininde çalıştırılıyor (Forge vb hata verebilir)."
     echo "⚠️  Bu dizin adında Türkçe karakterler (ü, Ü, İ, ı, ö, Ö, ğ, Ğ, ç, Ç, ş, Ş) var."
     echo "✅ Lütfen betiği Türkçe karakter içermeyen bir dizinde çalıştırın."
 
-    # fzf ile kullanıcıya seçim sun
     choice=$(printf "Devam Et\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
 
-    # Kullanıcının seçimine göre işlem yap
     if [[ "$choice" != "Devam Et" ]]; then
         echo "🚫 İşlem iptal edildi."
-        exit 1  # Betiği durdur
+        exit 1 
     fi
 fi
 
-# Betik burada çalışmaya devam eder
 echo "✅ Dizin uygun veya kullanıcı onay verdi, betik çalışıyor."
 
 JAVA_8="/usr/lib/jvm/java-1.8.0-openjdk-amd64/bin/java"
@@ -58,7 +54,6 @@ declare -A SERVER_URLS=(
 )
 
     
-# Java yükleme fonksiyonu
 install_java() {
     local version=$1
     local package=$2
@@ -73,13 +68,11 @@ install_java() {
     fi
 }
 
-# Java mevcut değilse yükleme işlemi
 [[ ! -f "$JAVA_8" ]] && install_java "Java 8" "openjdk-8-jre"
 [[ ! -f "$JAVA_17" ]] && install_java "Java 17" "openjdk-17-jre"
 [[ ! -f "$JAVA_21" ]] && install_java "Java 21" "openjdk-21-jre"
 
 
-# Vanilla versiyon listesi
 declare -A VANILLA_VERSIONS=(
     ["1.21.4"]="https://piston-data.mojang.com/v1/objects/4707d00eb834b446575d89a61a11b5d548d8c001/server.jar"
     ["1.21.3"]="https://piston-data.mojang.com/v1/objects/45810d238246d90e811d896f87b14695b7fb6839/server.jar"
@@ -327,7 +320,6 @@ declare -A FORGE_VERSIONS=(
 )
 
 
-# Sürüm formatlama fonksiyonu
 get_major_version() {
     echo "$1" | cut -d. -f1-2
 }
@@ -348,20 +340,16 @@ select_version() {
     esac
 	all_versions=$(printf "%s\n" "${versions_array[@]}")
 
-	# Major versiyonları bul
 	major_versions=""
 	for v in "${versions_array[@]}"; do
 		major_versions+="$(get_major_version "$v").x\n"
 	done
 
-	# Geri seçeneğini ekleyelim
 	major_versions="<<< Geri\n$major_versions"
 
-	# Major versiyonları sırala ve uniq yap
 	major_versions=$(echo -e "$major_versions" | sort -Vru | uniq)
 
 
-		# Major sürüm seçimi
 	while true; do
 		while true; do
 			selected_major=$(echo "$major_versions" | fzf --header "Major versiyon seçin (geri için '<<< Geri')" \
@@ -376,11 +364,9 @@ select_version() {
 				'"'"' -- {}' \
 				--preview-window=right:60%:wrap)
 
-			# Eğer kullanıcı geri seçeneğini seçtiyse, farklı bir exit code veya özel değer döndürebilirsiniz:
 			if [ -z "$selected_major" ]; then
 				:
 			elif [ "$selected_major" = "<<< Geri" ]; then
-				# Örneğin, 2 koduyla geri dönüyoruz:
 				return 2	
 			else
 				break
@@ -388,14 +374,11 @@ select_version() {
 		done
 
 
-		# Alt sürümleri listele
 		versions=($(printf "%s\n" "${versions_array[@]}" | grep "^${selected_major%.*}"))
 
-		# Geri tuşu ekleyerek listeyi düzenle
 		versions="<<< Geri\n$versions"
 		versions=$(echo -e "$versions" | sort -Vru | uniq)
 		
-		# Alt sürüm seçimi
 		while true; do
 			selected_version=$(printf "%s\n" "${versions[@]}" | sort -Vr | fzf --header "Alt versiyon seçin")
 			if [[ "$selected_version" == "<<< Geri" ]]; then
@@ -415,12 +398,10 @@ select_version() {
 }
 
 
-# Server indirme fonksiyonu
 download_server() {
     local server_type=$1
     local version=$2
     
-    # URL'yi belirleyin
     if [[ "$server_type" == "Vanilla" ]]; then
         url="${VANILLA_VERSIONS[$version]}"
     elif [[ "$server_type" == "Forge" ]]; then
@@ -433,26 +414,22 @@ download_server() {
         url="${SPONGE_VERSIONS[$version]}"
     fi
     
-    # URL'nin boş olmadığını kontrol et
     if [[ -z "$url" ]]; then
         echo "Hata: $server_type için $version sürümü bulunamadı."
         exit 1
     fi
     
-	download_dir="./${server_type}_${version}"  # Alt dizin yapısını oluşturuyoruz
-    mkdir -p "$download_dir"  # Alt dizini oluştur (eğer yoksa)
+	download_dir="./${server_type}_${version}"  
+    mkdir -p "$download_dir"
     
     download_path="${download_dir}/server.jar" 
 
     
-    # Dosyayı indir
     wget -O "$download_path" "$url" || { echo "İndirme başarısız!"; exit 1; }
 
-    # İndirilen dosya yolunu döndür
     echo "$download_path"
 }
 
-# Java sürüm seçme fonksiyonu
 select_java_version() {
     while true; do
         choice=$(printf "Java 8 (Minecraft 1.8 - 1.16.x)\nJava 17 (Minecraft 1.17 - 1.20.5)\nJava 21 (Minecraft 1.20.5+)\nÇıkış" | fzf --preview "echo Server Sürümü $selected_version")
@@ -488,13 +465,11 @@ select_ram() {
     while true; do
         read -p "Maksimum RAM miktarını MB cinsinden girin (varsayılan: $max_ram): " input_ram
 
-        # Eğer kullanıcı boş bırakırsa, mevcut max_ram değerini kabul et
         if [[ -z "$input_ram" ]]; then
             echo "$max_ram"
             return
         fi
 
-        # Eğer geçerli bir sayı girildiyse ve min_ram'den büyükse
         if [[ "$input_ram" =~ ^[0-9]+$ ]] && [ "$input_ram" -ge "$min_ram" ]; then
             max_ram=$input_ram
             echo "$max_ram"
@@ -507,47 +482,38 @@ select_ram() {
     done
 }
 
-# Ana işlem
 server_file="$1"
 update_server_properties() {
-    local server_properties="$1"  # Fonksiyona dosya yolunu parametre olarak geçiyoruz
+    local server_properties="$1"  
 
-    # Eğer dosya bulunmazsa
     if [ -z "$server_properties" ]; then
         echo "server.properties dosyası bulunamadı. Lütfen dosyanın yolunu kontrol edin."
         return 1
     else
-        # Dosyanın bulunduğu dizin ve adı
         echo "server.properties dosyası bulundu: $server_properties"
 
-        # Dosyanın yedeğini alalım (isteğe bağlı)
         cp "$server_properties" "$server_properties.bak"
 
-        # Max Oyuncu Sınırı
         read -p "Max Oyuncu Sınırı (current value: $(grep '^max-players' "$server_properties" | cut -d'=' -f2)): " max_players
         if [ -n "$max_players" ]; then
             sed -i "s/^max-players=.*/max-players=$max_players/" "$server_properties"
         fi
 
-        # Gamemode
         read -p "Gamemode (creative, survival, adventure) (current value: $(grep '^gamemode' "$server_properties" | cut -d'=' -f2)): " gamemode
         if [ -n "$gamemode" ]; then
             sed -i "s/^gamemode=.*/gamemode=$gamemode/" "$server_properties"
         fi
 
-        # Oyun Zorluğu
         read -p "Oyun Zorluğu (easy, normal, hard) (current value: $(grep '^difficulty' "$server_properties" | cut -d'=' -f2)): " difficulty
         if [ -n "$difficulty" ]; then
             sed -i "s/^difficulty=.*/difficulty=$difficulty/" "$server_properties"
         fi
 
-        # Online Mode
         read -p "Online Mode (true, false) (current value: $(grep '^online-mode' "$server_properties" | cut -d'=' -f2)): " online_mode
         if [ -n "$online_mode" ]; then
             sed -i "s/^online-mode=.*/online-mode=$online_mode/" "$server_properties"
         fi
 
-        # Enable Command Block
         read -p "Enable Command Block (true, false) (current value: $(grep '^enable-command-block' "$server_properties" | cut -d'=' -f2)): " enable_command_block
         if [ -n "$enable_command_block" ]; then
             sed -i "s/^enable-command-block=.*/enable-command-block=$enable_command_block/" "$server_properties"
@@ -556,7 +522,6 @@ update_server_properties() {
         echo "server.properties dosyası güncellendi."
     fi
 }
-# Server type seçimi ve versiyon seçimi fonksiyonu
 select_server_type() {
     while true; do
 		server_type=$(printf "%s\n" "${!SERVER_URLS[@]}" | fzf --header "Server türü seçin")
@@ -567,16 +532,14 @@ select_server_type() {
 		fi
 	done
     
-    # Sürüm seçimi
     selected_version=$(select_version "$server_type")
     status=$?
 
     if [ $status -eq 2 ]; then
         echo "Geri seçildi. Server type menüsüne dönülüyor..."
-        # Geri dönülür, server type menüsü tekrar çağrılır
         select_server_type
     elif [ -z "$selected_version" ]; then
-        exit 1  # Eğer versiyon seçilmediyse çık
+        exit 1  
     else
         echo "Seçilen versiyon: $selected_version"
     fi
@@ -586,14 +549,14 @@ if [[ -n "$server_file" ]]; then
     if [[ "$server_file" != *.jar ]]; then
         echo "Uyarı: $server_file bir .jar dosyası değil!"
         echo "Bir tuşa basarak çıkabilirsiniz..."
-        read -n 1 -s  # Kullanıcıdan bir tuş girişi bekler
+        read -n 1 -s 
         exit 1
     fi
 
     if [[ ! -f "$server_file" ]]; then
         echo "Hata: $server_file diye bir dosya bulunamadı!"
         echo "Bir tuşa basarak çıkabilirsiniz..."
-        read -n 1 -s  # Kullanıcıdan bir tuş girişi bekler
+        read -n 1 -s  
         exit 1
     fi
     
@@ -614,41 +577,32 @@ fi
 
 directories=("Forge_" "Vanilla_" "Fabric_" "Paper_" "Sponge_")
 
-# Mevcut dizindeki klasörleri bulma
 found_dirs=()
 for dir in "${directories[@]}"; do
-    # Bu klasör ile başlayan klasörleri kontrol et
     for folder in $(find . -maxdepth 1 -type d -name "$dir*"); do
         found_dirs+=("$folder")
     done
 done
 
-# Eğer bulunan klasörler varsa
 found_dirs+=("Seçmeden devam et")
 
-# Eğer bulunan klasörler varsa
 if [ ${#found_dirs[@]} -gt 0 ]; then
 	clear
-    # fzf ile seçenek sunma (Kaçış karakterleri eklendi)
     while true; do
 		
 		echo "✅ Dizinde 'server' klasörleri bulunuyor. Lütfen en az bir 'server' klasörü olup olmadığını kontrol edin!"
 		echo "⚠️ Ayrıca, içindeki JAR dosyasının adının 'server.jar' olduğundan emin olun."
 
-		# fzf ile kullanıcıya seçim sun
 		selected_folder=$(printf "%s\n" "${found_dirs[@]}" | fzf --header="❓ Hangi server klasörü ile devam etmek istersiniz? " --height=20 --border --reverse)
 
-		# Eğer 'Seçmeden devam et' seçildiyse
 		if [ "$selected_folder" == "Seçmeden devam et" ]; then
 			select_server_type
 			downloaded_file=$(download_server "$server_type" "$selected_version")
 			server_directory=$(dirname "$downloaded_file")
 			cd "$server_directory"
 			break
-		# Eğer bir klasör seçildiyse
 		elif [ -n "$selected_folder" ]; then
 			echo "Seçilen klasör: $selected_folder"
-			# Seçilen klasöre cd komutu
 			cd "$selected_folder"
 			break
 		fi
@@ -686,11 +640,10 @@ if [[ "$server_type" == "Forge" ]]; then
         sed -i 's/eula=false/eula=true/' "$eula_file"
         server_properties=$(find ./ -type f -name "server.properties" | head -n 1)
 
-		# Eğer dosya bulunduysa fonksiyonu çağır
 		if [ -n "$server_properties" ]; then
 			clear
    			echo "Server Properties dosyasını düzenlemek ister misiniz"
-			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
+			choice=$(printf "Duzenle\nEsGec" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
 			if [[ "$choice" == "Duzenle" ]]; then
 				update_server_properties "$server_properties"
 			fi		
@@ -699,9 +652,7 @@ if [[ "$server_type" == "Forge" ]]; then
 		fi
     else
         echo "EULA dosyası bulunamadı, sunucuyu ilk kez başlatıyorum."
-        # Sunucuyu başlat, EULA dosyası oluşturulsun
         "$java_path" -jar "ForgeInstaller.jar" --installServer
-        # İlk çalıştırmadan sonra EULA'yı kabul et
         server_jar=$(find . -maxdepth 1 -type f -iname "*.jar" ! -name "ForgeInstaller.jar" | head -n 1)
         if [[ -n "$server_jar" ]]; then
 			mv "$server_jar" "server.jar"
@@ -712,11 +663,10 @@ if [[ "$server_type" == "Forge" ]]; then
         sed -i 's/eula=false/eula=true/' "$eula_file"
 		server_properties=$(find ./ -type f -name "server.properties" | head -n 1)
 
-		# Eğer dosya bulunduysa fonksiyonu çağır
 		if [ -n "$server_properties" ]; then
 			clear
    			echo "Server Properties dosyasını düzenlemek ister misiniz"
-			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
+			choice=$(printf "Duzenle\nEsGec" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
 			if [[ "$choice" == "Duzenle" ]]; then
 				update_server_properties "$server_properties"
 			fi	
@@ -725,7 +675,6 @@ if [[ "$server_type" == "Forge" ]]; then
 		fi
     fi
     
-    # Sunucu kurulumu tamamlandığında sunucuyu başlat
     echo "Forge sunucusu başlatılıyor: $downloaded_file"
     server_jar=$(find . -maxdepth 1 -type f -iname "*.jar" ! -name "ForgeInstaller.jar" | head -n 1)
 
@@ -738,19 +687,17 @@ if [[ "$server_type" == "Forge" ]]; then
     
     
 else
-	eula_file="eula.txt"  # Dosyanın bulunduğu dizinde eula.txt
+	eula_file="eula.txt" 
 
 	if [[ -f "$eula_file" ]]; then
 		echo "EULA dosyası bulundu, EULA'yı kabul ediyorum."
-		# EULA'yı true olarak güncelle
 		sed -i 's/eula=false/eula=true/' "$eula_file"
 		server_properties=$(find ./ -type f -name "server.properties" | head -n 1)
 
-		# Eğer dosya bulunduysa fonksiyonu çağır
 		if [ -n "$server_properties" ]; then
 			clear
    			echo "Server Properties dosyasını düzenlemek ister misiniz"
-			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
+			choice=$(printf "Duzenle\nEsGec" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
 			if [[ "$choice" == "Duzenle" ]]; then
 				update_server_properties "$server_properties"
 			fi	
@@ -759,15 +706,13 @@ else
 		fi
 	else
 		echo "EULA dosyası bulunamadı, sunucuyu ilk kez başlatıyorum."
-		# Sunucuyu başlat, EULA dosyası oluşturulsun
 		"$java_path" -Xmx"${max_ram}M" -Xms"${min_ram}M" -jar "server.jar" nogui
 		server_properties=$(find ./ -type f -name "server.properties" | head -n 1)
 
-		# Eğer dosya bulunduysa fonksiyonu çağır
 		if [ -n "$server_properties" ]; then
 			clear
    			echo "Server Properties dosyasını düzenlemek ister misiniz"
-			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
+			choice=$(printf "Duzenle\nEsGec" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
 			if [[ "$choice" == "Duzenle" ]]; then
 				update_server_properties "$server_properties"
 			fi	
@@ -775,11 +720,9 @@ else
 			echo "server.properties dosyası bulunamadı."
 		fi
 
-		# İlk çalıştırmadan sonra EULA'yı kabul et
 		sed -i 's/eula=false/eula=true/' "$eula_file"
 	fi
 
-	# EULA'yı kabul ettikten sonra sunucuyu başlat
 	echo "Sunucu başlatılıyor: $downloaded_file"
 	"$java_path" -Xmx"${max_ram}M" -Xms"${min_ram}M" -jar "server.jar" nogui
 fi

@@ -702,7 +702,7 @@ if [[ "$server_type" == "Forge" ]]; then
 			clear
    			echo "Server Properties dosyasını düzenlemek ister misiniz"
 			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
-			if [[ "$choice" != "Duzenle" ]]; then
+			if [[ "$choice" == "Duzenle" ]]; then
 				update_server_properties "$server_properties"
 			fi	
 		else
@@ -736,7 +736,7 @@ else
 			clear
    			echo "Server Properties dosyasını düzenlemek ister misiniz"
 			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
-			if [[ "$choice" != "Duzenle" ]]; then
+			if [[ "$choice" == "Duzenle" ]]; then
 				update_server_properties "$server_properties"
 			fi	
 		else
@@ -753,7 +753,7 @@ else
 			clear
    			echo "Server Properties dosyasını düzenlemek ister misiniz"
 			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
-			if [[ "$choice" != "Duzenle" ]]; then
+			if [[ "$choice" == "Duzenle" ]]; then
 				update_server_properties "$server_properties"
 			fi	
 		else

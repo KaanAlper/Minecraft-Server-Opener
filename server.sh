@@ -674,7 +674,11 @@ if [[ "$server_type" == "Forge" ]]; then
 		# Eğer dosya bulunduysa fonksiyonu çağır
 		if [ -n "$server_properties" ]; then
 			clear
-			update_server_properties "$server_properties"
+   			echo "Server Properties dosyasını düzenlemek ister misiniz"
+			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
+			if [[ "$choice" != "Duzenle" ]]; then
+				update_server_properties "$server_properties"
+			fi		
 		else
 			echo "server.properties dosyası bulunamadı."
 		fi
@@ -696,7 +700,11 @@ if [[ "$server_type" == "Forge" ]]; then
 		# Eğer dosya bulunduysa fonksiyonu çağır
 		if [ -n "$server_properties" ]; then
 			clear
-			update_server_properties "$server_properties"
+   			echo "Server Properties dosyasını düzenlemek ister misiniz"
+			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
+			if [[ "$choice" != "Duzenle" ]]; then
+				update_server_properties "$server_properties"
+			fi	
 		else
 			echo "server.properties dosyası bulunamadı."
 		fi
@@ -726,7 +734,11 @@ else
 		# Eğer dosya bulunduysa fonksiyonu çağır
 		if [ -n "$server_properties" ]; then
 			clear
-			update_server_properties "$server_properties"
+   			echo "Server Properties dosyasını düzenlemek ister misiniz"
+			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
+			if [[ "$choice" != "Duzenle" ]]; then
+				update_server_properties "$server_properties"
+			fi	
 		else
 			echo "server.properties dosyası bulunamadı."
 		fi
@@ -739,7 +751,11 @@ else
 		# Eğer dosya bulunduysa fonksiyonu çağır
 		if [ -n "$server_properties" ]; then
 			clear
-			update_server_properties "$server_properties"
+   			echo "Server Properties dosyasını düzenlemek ister misiniz"
+			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
+			if [[ "$choice" != "Duzenle" ]]; then
+				update_server_properties "$server_properties"
+			fi	
 		else
 			echo "server.properties dosyası bulunamadı."
 		fi

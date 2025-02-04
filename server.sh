@@ -482,18 +482,27 @@ select_java_version() {
 }
 
 select_ram() {
-    local min_ram=$1  # minimum RAM parametresi alalım
-    while true; do
-        read -p "Maksimum RAM miktarını MB cinsinden girin (örneğin, 4096): " max_ram
+    local min_ram=$1  # Minimum RAM parametresi
+    local max_ram=4096  # Varsayılan bir değer atanabilir (örneğin 4096 MB)
 
-        # Kullanıcı geçerli bir değer girerse
-        if [[ "$max_ram" =~ ^[0-9]+$ ]] && [ "$max_ram" -ge "$min_ram" ]; then
+    while true; do
+        read -p "Maksimum RAM miktarını MB cinsinden girin (varsayılan: $max_ram): " input_ram
+
+        # Eğer kullanıcı boş bırakırsa, mevcut max_ram değerini kabul et
+        if [[ -z "$input_ram" ]]; then
             echo "$max_ram"
-            break
-        elif [[ "$max_ram" =~ ^[0-9]+$ ]] && [ "$max_ram" -lt "$min_ram" ]; then
-            echo "Maksimum RAM, minimum RAM'den küçük olamaz! Lütfen tekrar deneyin."
+            return
+        fi
+
+        # Eğer geçerli bir sayı girildiyse ve min_ram'den büyükse
+        if [[ "$input_ram" =~ ^[0-9]+$ ]] && [ "$input_ram" -ge "$min_ram" ]; then
+            max_ram=$input_ram
+            echo "$max_ram"
+            return
+        elif [[ "$input_ram" =~ ^[0-9]+$ ]] && [ "$input_ram" -lt "$min_ram" ]; then
+            echo "Hata: Maksimum RAM, minimum RAM'den küçük olamaz! Lütfen tekrar deneyin."
         else
-            echo "Geçersiz giriş. Lütfen bir sayı girin."
+            echo "Hata: Geçersiz giriş. Lütfen bir sayı girin."
         fi
     done
 }
@@ -619,9 +628,15 @@ found_dirs+=("Seçmeden devam et")
 
 # Eğer bulunan klasörler varsa
 if [ ${#found_dirs[@]} -gt 0 ]; then
+	clear
     # fzf ile seçenek sunma (Kaçış karakterleri eklendi)
     while true; do
-		selected_folder=$(printf "%s\n" "${found_dirs[@]}" | fzf --header="Dizinde server klasörleri bulunuyor. Onlarla devam etmek ister misiniz? (Server klasörü olup olmadığına dikkat edin ayrıca içindeki jar dosyasının adının server.jar olduğunu doğrulayın.)")
+		
+		echo "✅ Dizinde 'server' klasörleri bulunuyor. Lütfen en az bir 'server' klasörü olup olmadığını kontrol edin!"
+		echo "⚠️ Ayrıca, içindeki JAR dosyasının adının 'server.jar' olduğundan emin olun."
+
+		# fzf ile kullanıcıya seçim sun
+		selected_folder=$(printf "%s\n" "${found_dirs[@]}" | fzf --header="❓ Hangi server klasörü ile devam etmek istersiniz? " --height=20 --border --reverse)
 
 		# Eğer 'Seçmeden devam et' seçildiyse
 		if [ "$selected_folder" == "Seçmeden devam et" ]; then
@@ -676,7 +691,7 @@ if [[ "$server_type" == "Forge" ]]; then
 			clear
    			echo "Server Properties dosyasını düzenlemek ister misiniz"
 			choice=$(printf "Duzenle\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
-			if [[ "$choice" != "Duzenle" ]]; then
+			if [[ "$choice" == "Duzenle" ]]; then
 				update_server_properties "$server_properties"
 			fi		
 		else

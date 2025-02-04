@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Bağımlılık Kontrolleri
-
+clear
 check_dependencies() {
     local missing=()
     for cmd in fzf curl; do

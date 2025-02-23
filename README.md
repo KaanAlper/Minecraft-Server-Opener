@@ -36,3 +36,21 @@ Minecraft Server Opener is a simple bash script designed to automate the setup a
 
    ```bash
    sudo cp server.sh /usr/local/bin/server.sh
+
+
+
+## 📌 License
+
+This project is licensed under the Kaan Alper Karaaslan Personal & Academic Use License (v1.1).
+
+🔹 Summary of the License:
+
+✅ You are free to use, modify, and distribute this software for personal and academic purposes.
+
+❌ Commercial use is strictly prohibited. You may not sell, license, or integrate this software into any commercial product or service.
+
+✅ If you modify and share this software, you must provide proper attribution and retain this license.
+
+📧 If you wish to use this software for commercial purposes, you must obtain explicit permission from the author by contacting: kaanalperkaraaslan@gmail.com.
+
+For full details, please refer to the complete license text included in this repository.

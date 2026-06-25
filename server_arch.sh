@@ -23,12 +23,17 @@ check_dependencies() {
 }
 check_dependencies
 
-current_dir="$(pwd)"
+# Tüm sunucu klasörlerinin tutulduğu sabit kök dizin.
+# 'server' komutu nereden çağrılırsa çağrılsın daima burayı tarar.
+SERVERS_ROOT="$HOME/MinecraftServers"
+mkdir -p "$SERVERS_ROOT"
+
+current_dir="$SERVERS_ROOT"
 
 if [[ "$current_dir" =~ [üÜİıöÖğĞçÇşŞ] ]]; then
-    echo "❌ Hata: Betik '$current_dir' dizininde çalıştırılıyor (Forge vb hata verebilir)."
-    echo "⚠️  Bu dizin adında Türkçe karakterler (ü, Ü, İ, ı, ö, Ö, ğ, Ğ, ç, Ç, ş, Ş) var."
-    echo "✅ Lütfen betiği Türkçe karakter içermeyen bir dizinde çalıştırın."
+    echo "❌ Hata: Sunucu kök dizini '$current_dir' Forge vb. için hata verebilir."
+    echo "⚠️  Bu yol Türkçe karakterler (ü, Ü, İ, ı, ö, Ö, ğ, Ğ, ç, Ç, ş, Ş) içeriyor."
+    echo "✅ Lütfen Türkçe karakter içermeyen bir yol kullanın (kullanıcı adınızı kontrol edin)."
 
     choice=$(printf "Devam Et\nİptal Et" | fzf --prompt="❓ Ne yapmak istersiniz? " --height=10 --border --reverse)
 
@@ -417,7 +422,7 @@ download_server() {
         exit 1
     fi
     
-	download_dir="./${server_type}_${version}"  
+	download_dir="$SERVERS_ROOT/${server_type}_${version}"
     mkdir -p "$download_dir"
     
     download_path="${download_dir}/server.jar" 
@@ -577,7 +582,7 @@ directories=("Forge_" "Vanilla_" "Fabric_" "Paper_" "Sponge_")
 
 found_dirs=()
 for dir in "${directories[@]}"; do
-    for folder in $(find . -maxdepth 1 -type d -name "$dir*"); do
+    for folder in $(find "$SERVERS_ROOT" -maxdepth 1 -type d -name "$dir*"); do
         found_dirs+=("$folder")
     done
 done
@@ -588,7 +593,7 @@ if [ ${#found_dirs[@]} -gt 0 ]; then
 	clear
     while true; do
 		
-		echo "✅ Dizinde 'server' klasörleri bulunuyor. Lütfen en az bir 'server' klasörü olup olmadığını kontrol edin!"
+		echo "✅ Sunucu klasörleri '$SERVERS_ROOT' içinde aranıyor."
 		echo "⚠️ Ayrıca, içindeki JAR dosyasının adının 'server.jar' olduğundan emin olun."
 
 		selected_folder=$(printf "%s\n" "${found_dirs[@]}" | fzf --header="❓ Hangi server klasörü ile devam etmek istersiniz? " --height=20 --border --reverse)
